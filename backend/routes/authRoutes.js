@@ -1,22 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const mongoose = require('mongoose');
-
-// Auto-define User Model safely to prevent missing model crashes
-let User;
-try {
-  User = mongoose.model('User');
-} catch {
-  const userSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    role: { type: String, default: 'buyer' }, // buyer | seller | admin
-    brandName: { type: String, default: '' }
-  }, { timestamps: true });
-  User = mongoose.model('User', userSchema);
-}
+const User = require('../models/user');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'aurawood_secret_key_2026';
 
