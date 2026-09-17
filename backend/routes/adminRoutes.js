@@ -5,8 +5,10 @@ const Order = require('../models/Order');
 const Payout = require('../models/Payout');
 const { verifyToken, authorizeRoles } = require('../middleware/auth');
 
+// Protect all routes below for Admin only
 router.use(verifyToken, authorizeRoles('admin'));
 
+// 1. Get Pending Products
 router.get('/pending-products', async (req, res) => {
   try {
     const products = await Product.find({ isApprovedByAdmin: false }).populate('seller', 'name email shopDetails');
@@ -16,6 +18,7 @@ router.get('/pending-products', async (req, res) => {
   }
 });
 
+// 2. Approve/Reject Product
 router.patch('/product/:id/approve', async (req, res) => {
   try {
     const { isApproved } = req.body;
@@ -30,14 +33,15 @@ router.patch('/product/:id/approve', async (req, res) => {
   }
 });
 
+// 3. Platform Analytics
 router.get('/platform-analytics', async (req, res) => {
   try {
     const totalOrders = await Order.countDocuments();
     const activeListings = await Product.countDocuments({ isApprovedByAdmin: true });
     const payouts = await Payout.find();
     
-    const totalCommissionEarned = payouts.reduce((acc, curr) => acc + curr.platformCut, 0);
-    const totalGrossRevenue = payouts.reduce((acc, curr) => acc + curr.totalItemPrice, 0);
+    const totalCommissionEarned = payouts.reduce((acc, curr) => acc + (curr.platformCut || 0), 0);
+    const totalGrossRevenue = payouts.reduce((acc, curr) => acc + (curr.totalItemPrice || 0), 0);
 
     res.json({
       success: true,
